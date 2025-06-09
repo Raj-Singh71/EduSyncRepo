@@ -9,7 +9,7 @@ pool:
 variables:
   - group: StaticWebAppSecrets
   - name: REACT_APP_API_URL
-    value: 'https://edusync-backend-abhi-hjeph9aze0gvhyc7.eastus2-01.azurewebsites.net/api'
+    value: 'https://edusyncwa-fmcvdqe2echsekbx.eastus2-01.azurewebsites.net/api'
 
 steps:
   - checkout: self
