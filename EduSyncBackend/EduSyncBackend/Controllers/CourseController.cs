@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using EduSyncBackend.Models;
 using EduSyncBackend.Data;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using EduSyncBackend.DTOs;
 using System.Linq;
 using System;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using EduSyncBackend.Services;
 
 namespace EduSyncBackend.Controllers
@@ -43,29 +40,9 @@ namespace EduSyncBackend.Controllers
                 // Handle multiple file uploads
                 if (dto.Media != null && dto.Media.Count > 0)
                 {
-                    var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "coursemedia");
-                    if (!Directory.Exists(uploadsDir))
-                        Directory.CreateDirectory(uploadsDir);
-
                     foreach (var file in dto.Media)
                     {
-                        // 1. Save locally as before
-                        var fileName = $"{course.Id}_{Guid.NewGuid()}_{file.FileName}";
-                        var filePath = Path.Combine(uploadsDir, fileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-
-                        var localMedia = new CourseMedia
-                        {
-                            CourseId = course.Id,
-                            FilePath = $"/coursemedia/{fileName}",
-                            OriginalFileName = file.FileName
-                        };
-                        _context.CourseMedia.Add(localMedia);
-
-                        // 2. Upload to Azure Blob Storage
+                        // Upload to Azure Blob Storage only
                         var azureUrl = await _blobService.UploadFileAsync(file);
 
                         var azureMedia = new CourseMedia
@@ -163,7 +140,6 @@ namespace EduSyncBackend.Controllers
                             }).ToList()
                     })
                     .ToList();
-
                 return Ok(courses);
             }
             catch (Exception ex)
@@ -187,29 +163,9 @@ namespace EduSyncBackend.Controllers
                 // Handle media file upload if any
                 if (dto.Media != null && dto.Media.Count > 0)
                 {
-                    var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "coursemedia");
-                    if (!Directory.Exists(uploadsDir))
-                        Directory.CreateDirectory(uploadsDir);
-
                     foreach (var file in dto.Media)
                     {
-                        // 1. Save locally as before
-                        var fileName = $"{course.Id}_{Guid.NewGuid()}_{file.FileName}";
-                        var filePath = Path.Combine(uploadsDir, fileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-
-                        var localMedia = new CourseMedia
-                        {
-                            CourseId = course.Id,
-                            FilePath = $"/coursemedia/{fileName}",
-                            OriginalFileName = file.FileName
-                        };
-                        _context.CourseMedia.Add(localMedia);
-
-                        // 2. Upload to Azure Blob Storage
+                        // Upload to Azure Blob Storage only
                         var azureUrl = await _blobService.UploadFileAsync(file);
 
                         var azureMedia = new CourseMedia
@@ -247,6 +203,6 @@ namespace EduSyncBackend.Controllers
             {
                 return StatusCode(500, new { error = ex.Message, details = ex.ToString() });
             }
-        }
-    }
+        }
+    }
 }
